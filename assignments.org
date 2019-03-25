@@ -1,0 +1,386 @@
+#+TITLE: Programming Assignment
+#+AUTHOR: Ólafur Bogason
+#+OPTIONS: toc:2 # Limit the Table of Contents to depth 2.
+
+This is an example of how [[https://orgmode.org/][org-mode]] can be used to complete programming assignments. Each heading is a separate assignment and every subheading is a question therein. You can use ~org-babel-tangle~ to export code and associated tests for each assignment.
+
+* Basic functions on ~int list~ 
+  :PROPERTIES:
+  :header-args: :results silent :tangle export/hw_basic_list.sml
+  :END:
+  
+In this fake homework assignment you will implement functions that work on the ~int list~ type in SML.
+  
+  #+begin_src sml :tangle export/hw_basic_list_tests.sml
+use "hw_basic_list.sml";
+  #+end_src
+  
+** ~empty~
+   #+begin_quote
+   Write a function ~empty~ that returns true if passed the empty list ~[]~.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/hw_basic_list_tests.sml
+val empty_test_1 = empty [1,2,3,45] = false;
+val empty_test_2 = empty [42,2,3,45] = false;
+val empty_test_3 = empty [] = true;
+    #+end_src
+    
+*** My solution
+   #+begin_src sml 
+fun empty [] = true
+  | empty _ = false
+   #+end_src
+   
+** ~head~
+   #+begin_quote
+   Write a function ~head~ that takes a list and returns its first element. If passed the empty list raise the ~List.Empty~ exception.
+   #+end_quote
+   
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/hw_basic_list_tests.sml
+val head_test_1 = head [1,2,3,45] = hd [1,2,3,45];
+val head_test_2 = head [42,2,3,45] = hd [42,2,3,45];
+val head_test_3 = (head []; false) handle List.Empty => true;
+    #+end_src
+    
+*** My solution
+   #+begin_src sml 
+fun head [] = raise List.Empty
+  | head (x::xs) = x
+   #+end_src
+   
+*** Alternate solutions
+   #+begin_src sml :tangle no
+(* Returns the head of a list. *)
+fun head (xs) =
+	case xs of
+		[] => raise List.Empty
+	  | (x::_) => x
+   #+end_src
+
+** ~last~
+   #+begin_quote
+   Write a function ~last~ that takes a list and returns the last element.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/hw_basic_list_tests.sml
+val last_test_1 = last [1,2,3,45] = List.last [1,2,3,45];
+val last_test_2 = last [42,2,3,45] = List.last [42,2,3,45];
+val last_test_3 = (last []; false) handle List.Empty => true;
+    #+end_src
+    
+*** My solution
+   #+begin_src sml 
+fun last [] = raise List.Empty
+  | last (x::[]) = x
+  | last (_::xs) = last (xs)
+   #+end_src
+   
+** ~tail~
+   #+begin_quote
+   Write a function ~tail~ that takes a list and returns a list without its head element.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/hw_basic_list_tests.sml
+val tail_test_1 = tail [1,2,3,45] = tl [1,2,3,45];
+val tail_test_2 = tail [42,2,3,45] = tl [42,2,3,45];
+val tail_test_3 = (tail []; false) handle List.Empty => true;
+    #+end_src
+    
+*** My solution
+   #+begin_src sml 
+fun tail [] = raise List.Empty
+  | tail (x::xs) = xs
+   #+end_src
+   
+*** Alternate solutions
+   #+begin_src sml :tangle no
+fun tail (xs) =
+	case xs of
+		[] => raise List.Empty
+	  | (_::xs') => xs'
+   #+end_src
+
+** ~init~
+   #+begin_quote
+   Write a function ~init~ that takes a list and returns all but last element.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/hw_basic_list_tests.sml
+val init_test_1 = init [1,2,3,45] = [1,2,3];
+val init_test_2 = init [42,2,3,45] = [42,2,3];
+val init_test_3 = (init []; false) handle List.Empty => true;
+    #+end_src
+    
+*** My solution
+    Here we use a local tail-recursive function that does the heavy lifting.
+   #+begin_src sml 
+fun init [] = raise List.Empty
+  | init (x::[]) = []
+  | init (x::xs) = x :: init (xs)
+   #+end_src
+   
+*** Alternate solutions
+   #+begin_src sml :tangle no
+fun init [] = raise List.Empty
+  | init (x::[]) = []
+  | init (x::xs) = x :: init (xs)
+   #+end_src
+
+** ~nth~
+   #+begin_quote
+   Write a function ~nth~ that takes a list and index n and returns its n^{th} element. If passed an index outside the range of the list raise a ~List.Empty~ exception.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/hw_basic_list_tests.sml
+val nth_test_1 = nth ([1,2,3,45], 1) = 2;
+val nth_test_2 = nth ([1,2,3,42], 3) = 42;
+val nth_test_3 = (nth ([1,2,3,45], 8); false) handle Subscript => true;
+val nth_test_3 = (nth ([1,2,3,45], ~1); false) handle Subscript => true;
+    #+end_src
+    
+*** My solution
+    Here we use a locally defined tail-recursive function that does the heavy lifting.
+   #+begin_src sml 
+fun nth ([], _) = raise Subscript
+  | nth (x::xs, n) = if n < 0 then raise Subscript
+                     else if n = 0 then x
+                     else nth (xs, n-1)
+   #+end_src
+   
+** ~take~
+   #+begin_quote
+   Write a function ~take~ that takes in a list and an int n and return the first n elements. If passed an index that lies outside the range of the list raise a ~List.Empty~ exception.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/hw_basic_list_tests.sml
+val take_test_1 = take ([1,2,3,45], 2) = [1,2];
+val take_test_2 = take ([42,2,3,45], 3) = [42,2,3];
+val take_test_3 = (take ([1,2,3], ~4); false) handle Subscript => true;
+    #+end_src
+    
+*** My solution
+   #+begin_src sml 
+fun take ([], _) = []
+  | take (x::xs, n) = if n < 0 then raise Subscript
+                      else if n = 0 then [] else x :: take (xs, n-1)
+   #+end_src
+   
+** ~drop~
+   #+begin_quote
+   Write a function ~drop~ that drops a list and an int n and return the last n elements. If passed an index that lies outside the range of the list raise a ~List.Empty~ exception.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/hw_basic_list_tests.sml
+val drop_test_1 = drop ([1,2,3,45], 2) = [3,45];
+val drop_test_2 = drop ([42,2,3,45], 3) = [45];
+val drop_test_3 = (drop ([1,2,3], ~4); false) handle Subscript => true;
+    #+end_src
+    
+*** My solution
+   #+begin_src sml 
+fun drop ([], _) = []
+  | drop (x::xs, n) = if n < 0 then raise Subscript
+                      else if n = 1 then xs
+                      else drop (xs, n-1)
+   #+end_src
+   
+** ~replicate~
+   #+begin_quote
+   Write a function ~replicate~ that takes in two numbers x and n and returns a list of size n filled with x.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/hw_basic_list_tests.sml
+val replicate_test_1 = replicate (5, 5) = [5,5,5,5,5];
+val replicate_test_2 = replicate (2, 4) = [2,2,2,2];
+    #+end_src
+    
+*** My solution
+    #+begin_src sml 
+fun replicate (x, n) = if n < 1 then [] else x :: replicate (x, n-1)
+    #+end_src
+
+----- 
+* ~int list~ functions implemented using ~List.foldl~
+  :PROPERTIES:
+  :header-args: :results silent :tangle export/list_foldl.sml
+  :END:
+  In this fake homework assignment you will implement functions that utilize ~List.foldl~.
+** ~sum~
+   #+begin_quote
+   Write a function ~sum~ that receives a list and returns the sum of its elements.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/list_foldl_tests.sml
+val sum_test_1 = sum ([1,2,3,45]) = 1+2+3+45;
+val sum_test_2 = sum ([42,2,3,45]) = 42+2+3+45;
+    #+end_src
+    
+*** My solution
+    #+begin_src sml 
+fun sum xs = List.foldl (fn (x, acc) => x + acc) 0 xs
+    #+end_src
+
+** ~product~
+   #+begin_quote
+   Write a function ~product~ that takes in a list of ints and returns the product of all its elements.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/list_foldl_tests.sml
+val product_test_1 = product ([1,2,3,45]) = 1*2*3*45;
+val product_test_2 = product ([42,2,3,45]) = 42*2*3*45;
+    #+end_src
+    
+*** My solution
+    #+begin_src sml 
+fun product xs = List.foldl (fn (x, acc) => x * acc) 1 xs
+    #+end_src
+** ~concat~
+   #+begin_quote
+   Write a function ~concat~ that takes a list of lists, flattens them out and returns a single list containing elements from all lists.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/list_foldl_tests.sml
+val concat_test_1 = concat ([[1,2,3], [4,5,7]]) = [1,2,3] @ [4,5,7];
+val concat_test_2 = concat ([[42,2,3,45], [2,2,2,2], [1,2,3,4,5]]) = [42,2,3,45] @ [2,2,2,2] @ [1,2,3,4,5];
+    #+end_src
+    
+*** My solution
+    #+begin_src sml 
+fun concat xs = List.foldl (fn (x, acc) => acc @ x) [] xs
+    #+end_src
+
+** ~maximum~
+   #+begin_quote
+   Write a function ~maximum~ that maximums a list and returns an optional containing the largest element. Returns NONE if passed in the empty list.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/list_foldl_tests.sml
+val maximum_test_1 = maximum ([1,2,3,45]) = SOME 45;
+val maximum_test_1 = maximum ([~1,~2,3,~45]) = SOME 3;
+val maximum_test_2 = maximum ([]) = NONE;
+    #+end_src
+    
+*** My solution
+    #+begin_src sml 
+fun maximum xs = List.foldl (fn (x, acc) => case acc of NONE => SOME (x) | SOME y => SOME (Int.max(x,y))) NONE xs
+    #+end_src
+   
+** ~minimum~
+   #+begin_quote
+   Write a function ~maximum~ that maximums a list and returns an optional containing the smallest element. Returns NONE if passed in the empty list.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/list_foldl_tests.sml
+val minimum_test_1 = minimum ([1,2,3,45]) = SOME 1;
+val minimum_test_1 = minimum ([~1,~2,3,~45]) = SOME ~45;
+val minimum_test_2 = minimum ([]) = NONE;
+    #+end_src
+    
+*** My solution
+    #+begin_src sml 
+fun minimum xs = List.foldl (fn (x, acc) => case acc of NONE => SOME (x) | SOME y => SOME (Int.min(x,y))) NONE xs
+    #+end_src
+   
+** ~reverse~
+   #+begin_quote
+   Write a function ~reverse~ that reverses a list.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/list_foldl_tests.sml
+val reverse_test_1 = reverse ([1,2,3,45]) = rev [1,2,3,45];
+val reverse_test_2 = reverse ([42,2,3,45]) = rev [42,2,3,45];
+val reverse_test_2 = reverse ([42]) = rev [42];
+    #+end_src
+    
+*** My solution
+    #+begin_src sml 
+fun reverse (xs) = List.foldl (fn (x, acc) => x :: acc) [] xs
+    #+end_src
+   
+    ----- 
+* ~int list~ functions implemented using ~List.foldr~
+  :PROPERTIES:
+  :header-args: :results silent :tangle export/list_foldr.sml
+  :END:
+  In this fake homework assignment you will implement functions that use ~List.foldr~.
+** ~append~
+   #+begin_quote
+   Write a function ~append~ that takes in two lists and returns a new list containing all elements together.
+   #+end_quote
+    
+*** Tests
+    :PROPERTIES:  
+    :UNNUMBERED: notoc
+    :END:  
+    #+begin_src sml :tangle export/list_foldr_tests.sml
+val append_test_1 = append ([1,2,3,45], [2]) = [1,2,3,45] @ [2];
+val append_test_2 = append ([42,2,3,45], [2,2,2,2]) = [42,2,3,45] @ [2,2,2,2];
+    #+end_src
+    
+*** My solution
+    #+begin_src sml 
+fun append (xs, ys) = List.foldr (fn (x, acc) => x :: acc) ys xs
+    #+end_src
+   
+    ----- 
