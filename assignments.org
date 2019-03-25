@@ -2,7 +2,7 @@
 #+AUTHOR: Ólafur Bogason
 #+OPTIONS: toc:2 # Limit the Table of Contents to depth 2.
 
-This is an example of how [[https://orgmode.org/][org-mode]] can be used to complete programming assignments. Each heading is a separate assignment and every subheading is a question therein. You can use ~org-babel-tangle~ to export code and associated tests for each assignment.
+This is an example of how [[https://orgmode.org/][org-mode]] can be used to complete programming assignments. Each heading is a separate assignment and every subheading is a question therein. You can use ~org-babel-tangle~ to export code and associated tests for each assignment. This document can also be [[https://orgmode.org/manual/Exporting.html#Exporting][exported]] to many other formats such as pdf or HTML.
 
 * Basic functions on ~int list~ 
   :PROPERTIES:
